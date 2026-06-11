@@ -14,9 +14,10 @@ dotenv.config();
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
+const refresh_token = process.env.XERO_REFRESH_TOKEN;
 const grant_type = "client_credentials";
 
-if (!bearer_token && (!client_id || !client_secret)) {
+if (!bearer_token && !refresh_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
@@ -220,12 +221,61 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 }
 
+class RefreshTokenXeroClient extends MCPXeroClient {
+  private readonly clientId: string;
+  private readonly clientSecret: string;
+  private readonly storedRefreshToken: string;
+
+  constructor(config: {
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+  }) {
+    super();
+    this.clientId = config.clientId;
+    this.clientSecret = config.clientSecret;
+    this.storedRefreshToken = config.refreshToken;
+  }
+
+  async authenticate(): Promise<void> {
+    const credentials = Buffer.from(
+      `${this.clientId}:${this.clientSecret}`,
+    ).toString("base64");
+
+    const response = await axios.post(
+      "https://identity.xero.com/connect/token",
+      `grant_type=refresh_token&refresh_token=${encodeURIComponent(this.storedRefreshToken)}`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+      },
+    );
+
+    this.setTokenSet({
+      access_token: response.data.access_token,
+      expires_in: response.data.expires_in,
+      token_type: response.data.token_type,
+    });
+
+    await this.updateTenants();
+  }
+}
+
 export const xeroClient = bearer_token
   ? new BearerTokenXeroClient({
       bearerToken: bearer_token,
     })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
-    });
+  : refresh_token
+    ? new RefreshTokenXeroClient({
+        clientId: client_id!,
+        clientSecret: client_secret!,
+        refreshToken: refresh_token,
+      })
+    : new CustomConnectionsXeroClient({
+        clientId: client_id!,
+        clientSecret: client_secret!,
+        grantType: grant_type,
+      });
