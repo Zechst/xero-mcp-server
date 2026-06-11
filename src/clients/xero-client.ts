@@ -225,6 +225,7 @@ class RefreshTokenXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private currentRefreshToken: string;
+  private accessTokenExpiresAt: number = 0; // epoch ms
 
   constructor(config: {
     clientId: string;
@@ -275,6 +276,11 @@ class RefreshTokenXeroClient extends MCPXeroClient {
   }
 
   async authenticate(): Promise<void> {
+    // Skip if access token is still valid (with 60s buffer)
+    if (Date.now() < this.accessTokenExpiresAt - 60_000) {
+      return;
+    }
+
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
@@ -296,6 +302,9 @@ class RefreshTokenXeroClient extends MCPXeroClient {
       expires_in: response.data.expires_in,
       token_type: response.data.token_type,
     });
+
+    // Cache expiry: expires_in is in seconds (Xero gives 1800 = 30 min)
+    this.accessTokenExpiresAt = Date.now() + (response.data.expires_in ?? 1800) * 1000;
 
     if (response.data.refresh_token) {
       this.currentRefreshToken = response.data.refresh_token;
