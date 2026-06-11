@@ -7,12 +7,17 @@ import { formatError } from "../helpers/format-error.js";
 async function getBankTransactions(
   page: number,
   bankAccountId?: string,
+  isReconciled?: boolean,
 ): Promise<BankTransaction[]> {
   await xeroClient.authenticate();
 
+  const filters: string[] = [];
+  if (bankAccountId) filters.push(`BankAccount.AccountID=guid("${bankAccountId}")`);
+  if (isReconciled !== undefined) filters.push(`IsReconciled=${isReconciled}`);
+
   const response = await xeroClient.accountingApi.getBankTransactions(xeroClient.tenantId,
       undefined, // ifModifiedSince
-      bankAccountId ? `BankAccount.AccountID=guid("${bankAccountId}")` : undefined, // where
+      filters.length ? filters.join("&&") : undefined, // where
       "Date DESC", // order
       page, // page
       undefined, // unitdp
@@ -25,10 +30,11 @@ async function getBankTransactions(
 
 export async function listXeroBankTransactions(
   page: number = 1,
-  bankAccountId?: string
+  bankAccountId?: string,
+  isReconciled?: boolean,
 ): Promise<XeroClientResponse<BankTransaction[]>> {
   try {
-    const bankTransactions = await getBankTransactions(page, bankAccountId);
+    const bankTransactions = await getBankTransactions(page, bankAccountId, isReconciled);
 
     return {
       result: bankTransactions,

@@ -5,19 +5,20 @@ import { formatLineItem } from "../../helpers/format-line-item.js";
 
 const ListBankTransactionsTool = CreateXeroTool(
   "list-bank-transactions",
-  `List all bank transactions in Xero.
+  `List bank transactions in Xero.
   Ask the user if they want to see bank transactions for a specific bank account,
   or to see all bank transactions before running.
-  Ask the user if they want the next page of quotes after running this tool if
+  Use isReconciled=false to retrieve unmatched/unreconciled transactions only.
+  Ask the user if they want the next page after running this tool if
   10 bank transactions are returned.
-  If they do, call this tool again with the next page number and the bank account
-  if one was provided in the provided in the previous call.`,
+  If they do, call this tool again with the next page number and the same filters.`,
   {
     page: z.number(),
-    bankAccountId: z.string().optional()
+    bankAccountId: z.string().optional().describe("Filter by a specific bank account ID. Can be obtained from the list-accounts tool."),
+    isReconciled: z.boolean().optional().describe("Filter by reconciliation status. Use false to get unmatched transactions, true for reconciled only. Omit to get all."),
   },
-  async ({ bankAccountId, page }) => {
-    const response = await listXeroBankTransactions(page, bankAccountId);
+  async ({ bankAccountId, page, isReconciled }) => {
+    const response = await listXeroBankTransactions(page, bankAccountId, isReconciled);
     if (response.isError) {
       return {
         content: [
