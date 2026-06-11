@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice, LineItemTracking } from "xero-node";
+import { CurrencyCode, Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
@@ -21,6 +21,7 @@ async function createInvoice(
   reference: string | undefined,
   date: string | undefined,
   currencyRate: number | undefined,
+  currencyCode: string | undefined,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
@@ -39,6 +40,7 @@ async function createInvoice(
       : { reference: reference }),
     status: Invoice.StatusEnum.DRAFT,
     currencyRate: currencyRate,
+    ...(currencyCode ? { currencyCode: currencyCode as unknown as CurrencyCode } : {}),
   };
 
   const response = await xeroClient.accountingApi.createInvoices(
@@ -65,6 +67,7 @@ export async function createXeroInvoice(
   reference?: string,
   date?: string,
   currencyRate?: number,
+  currencyCode?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(
@@ -74,6 +77,7 @@ export async function createXeroInvoice(
       reference,
       date,
       currencyRate,
+      currencyCode,
     );
 
     if (!createdInvoice) {

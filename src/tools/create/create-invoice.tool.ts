@@ -42,10 +42,11 @@ const CreateInvoiceTool = CreateXeroTool(
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
     currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency invoices. Defaults to XE.com day rate if omitted."),
+    currencyCode: z.string().optional().describe("ISO 4217 currency code (e.g. VND, USD, SGD). Defaults to the organisation's base currency if omitted."),
   },
-  async ({ contactId, lineItems, type, reference, date, currencyRate }) => {
+  async ({ contactId, lineItems, type, reference, date, currencyRate, currencyCode }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, currencyRate);
+    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, currencyRate, currencyCode);
     if (result.isError) {
       return {
         content: [
