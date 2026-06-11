@@ -224,7 +224,7 @@ class BearerTokenXeroClient extends MCPXeroClient {
 class RefreshTokenXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
-  private readonly storedRefreshToken: string;
+  private currentRefreshToken: string;
 
   constructor(config: {
     clientId: string;
@@ -234,7 +234,33 @@ class RefreshTokenXeroClient extends MCPXeroClient {
     super();
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
-    this.storedRefreshToken = config.refreshToken;
+    this.currentRefreshToken = config.refreshToken;
+  }
+
+  private async persistRotatedToken(newRefreshToken: string): Promise<void> {
+    const renderApiKey = process.env.RENDER_API_KEY;
+    const renderServiceId = process.env.RENDER_SERVICE_ID;
+
+    if (!renderApiKey || !renderServiceId) {
+      console.error("Warning: RENDER_API_KEY or RENDER_SERVICE_ID not set — rotated refresh token will be lost on restart");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `https://api.render.com/v1/services/${renderServiceId}/env-vars`,
+        [{ key: "XERO_REFRESH_TOKEN", value: newRefreshToken }],
+        {
+          headers: {
+            Authorization: `Bearer ${renderApiKey}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        },
+      );
+    } catch (err) {
+      console.error("Warning: could not persist rotated refresh token to Render:", err);
+    }
   }
 
   async authenticate(): Promise<void> {
@@ -244,7 +270,7 @@ class RefreshTokenXeroClient extends MCPXeroClient {
 
     const response = await axios.post(
       "https://identity.xero.com/connect/token",
-      `grant_type=refresh_token&refresh_token=${encodeURIComponent(this.storedRefreshToken)}`,
+      `grant_type=refresh_token&refresh_token=${encodeURIComponent(this.currentRefreshToken)}`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -259,6 +285,11 @@ class RefreshTokenXeroClient extends MCPXeroClient {
       expires_in: response.data.expires_in,
       token_type: response.data.token_type,
     });
+
+    if (response.data.refresh_token) {
+      this.currentRefreshToken = response.data.refresh_token;
+      await this.persistRotatedToken(response.data.refresh_token);
+    }
 
     await this.updateTenants();
   }

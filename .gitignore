@@ -142,3 +142,4 @@ dist
 
 # Cursor IDE
 .cursor/
+.gstack/
