@@ -247,17 +247,24 @@ class RefreshTokenXeroClient extends MCPXeroClient {
     }
 
     try {
-      await axios.put(
-        `https://api.render.com/v1/services/${renderServiceId}/env-vars`,
-        [{ key: "XERO_REFRESH_TOKEN", value: newRefreshToken }],
-        {
-          headers: {
-            Authorization: `Bearer ${renderApiKey}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        },
-      );
+      const baseUrl = `https://api.render.com/v1/services/${renderServiceId}/env-vars`;
+      const headers = {
+        Authorization: `Bearer ${renderApiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      // GET current env vars so we don't wipe them with the PUT
+      const current = await axios.get(baseUrl, { headers });
+      const envVars: Array<{ key: string; value: string }> = current.data ?? [];
+
+      const updated = envVars.some((e) => e.key === "XERO_REFRESH_TOKEN")
+        ? envVars.map((e) =>
+            e.key === "XERO_REFRESH_TOKEN" ? { key: e.key, value: newRefreshToken } : e,
+          )
+        : [...envVars, { key: "XERO_REFRESH_TOKEN", value: newRefreshToken }];
+
+      await axios.put(baseUrl, updated, { headers });
     } catch (err) {
       console.error("Warning: could not persist rotated refresh token to Render:", err);
     }
