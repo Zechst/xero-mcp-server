@@ -255,8 +255,12 @@ class RefreshTokenXeroClient extends MCPXeroClient {
       };
 
       // GET current env vars so we don't wipe them with the PUT
+      // Render returns [{ cursor, envVar: { key, value } }] — flatten to [{ key, value }]
       const current = await axios.get(baseUrl, { headers });
-      const envVars: Array<{ key: string; value: string }> = current.data ?? [];
+      const envVars: Array<{ key: string; value: string }> = (current.data ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((item: any) => item.envVar ?? item)
+        .filter((e: { key?: string }) => e.key);
 
       const updated = envVars.some((e) => e.key === "XERO_REFRESH_TOKEN")
         ? envVars.map((e) =>
