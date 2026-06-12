@@ -75,5 +75,24 @@ export function formatError(error: unknown): string {
     return error.message;
   }
 
+  // xero-node SDK throws JSON strings instead of Error objects in some paths
+  if (typeof error === "string") {
+    try {
+      const parsed = JSON.parse(error);
+      const statusCode = parsed?.response?.statusCode;
+      const body = parsed?.response?.body;
+      if (statusCode) {
+        const mapped = formatHttpStatus(statusCode);
+        if (mapped) return mapped;
+        const detail = body?.Detail ?? body?.detail ?? body?.message;
+        const title = body?.Title ?? body?.title ?? "HTTP error";
+        return detail ? `${statusCode} ${title}: ${detail}` : `${statusCode} ${title}`;
+      }
+    } catch {
+      // not JSON — fall through
+    }
+    return error.length < 200 ? error : "An unexpected error occurred while communicating with Xero.";
+  }
+
   return "An unexpected error occurred while communicating with Xero.";
 }
