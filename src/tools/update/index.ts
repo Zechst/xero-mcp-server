@@ -14,6 +14,7 @@ import UpdateManualJournalTool from "./update-manual-journal-tool.js";
 import UpdateQuoteTool from "./update-quote.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
+import UpdateAttachmentTool from "./update-attachment.tool.js";
 
 export const UpdateTools = [
   AuthoriseBillTool,
@@ -30,5 +31,6 @@ export const UpdateTools = [
   UpdatePayrollTimesheetLineTool,
   RevertPayrollTimesheetTool,
   UpdateTrackingCategoryTool,
-  UpdateTrackingOptionsTool
+  UpdateTrackingOptionsTool,
+  UpdateAttachmentTool
 ];
