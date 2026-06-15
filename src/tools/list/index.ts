@@ -27,6 +27,8 @@ import ListReportBalanceSheetTool from "./list-report-balance-sheet.tool.js";
 import ListTaxRatesTool from "./list-tax-rates.tool.js";
 import ListTrackingCategoriesTool from "./list-tracking-categories.tool.js";
 import ListAttachmentsTool from "./list-attachments.tool.js";
+import ListFoldersTool from "./list-folders.tool.js";
+import ListFilesTool from "./list-files.tool.js";
 import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListContactGroupsTool from "./list-contact-groups.tool.js";
 
@@ -56,5 +58,7 @@ export const ListTools = [
   ListPayrollTimesheetsTool,
   ListContactGroupsTool,
   ListTrackingCategoriesTool,
-  ListAttachmentsTool
+  ListAttachmentsTool,
+  ListFoldersTool,
+  ListFilesTool,
 ];

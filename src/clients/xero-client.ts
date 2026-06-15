@@ -89,6 +89,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     "payroll.settings",
     "payroll.employees",
     "payroll.timesheets",
+    "files",
   ].join(" ");
 
   // Granular scopes (required for new apps)
@@ -107,6 +108,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     "payroll.settings",
     "payroll.employees",
     "payroll.timesheets",
+    "files",
   ].join(" ");
 
   constructor(config: {
