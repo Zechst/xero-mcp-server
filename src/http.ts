@@ -14,17 +14,11 @@ const PORT = process.env.PORT ?? 3000;
 
 const TEMP_DIR = "/tmp/xero-uploads";
 
+// Use memory storage so we can read req.body.fileName (set by a text field) before
+// writing to disk — multer's diskStorage filename callback fires before body fields
+// are parsed when the file field appears first in the form.
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      fs.mkdirSync(TEMP_DIR, { recursive: true });
-      cb(null, TEMP_DIR);
-    },
-    filename: (req, _file, cb) => {
-      const fileName = (req.body?.fileName as string | undefined) ?? _file.originalname;
-      cb(null, fileName);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB — Xero's attachment size limit
 });
 
@@ -58,7 +52,11 @@ app.post("/upload-temp", upload.single("file"), (req, res) => {
     res.status(400).json({ error: "No file uploaded. Send a multipart/form-data POST with a 'file' field." });
     return;
   }
-  const tempPath = path.join(TEMP_DIR, req.file.filename);
+  // req.body is fully parsed by the time the route handler runs
+  const fileName = (req.body?.fileName as string | undefined) ?? req.file.originalname;
+  fs.mkdirSync(TEMP_DIR, { recursive: true });
+  const tempPath = path.join(TEMP_DIR, fileName);
+  fs.writeFileSync(tempPath, req.file.buffer);
   res.json({ tempPath });
 });
 
