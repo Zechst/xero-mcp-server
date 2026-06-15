@@ -15,6 +15,7 @@ import UpdateQuoteTool from "./update-quote.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 import UpdateAttachmentTool from "./update-attachment.tool.js";
+import MoveFileTool from "./move-file.tool.js";
 
 export const UpdateTools = [
   AuthoriseBillTool,
@@ -32,5 +33,6 @@ export const UpdateTools = [
   RevertPayrollTimesheetTool,
   UpdateTrackingCategoryTool,
   UpdateTrackingOptionsTool,
-  UpdateAttachmentTool
+  UpdateAttachmentTool,
+  MoveFileTool,
 ];

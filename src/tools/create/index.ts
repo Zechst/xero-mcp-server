@@ -12,6 +12,7 @@ import CreateTrackingOptionsTool from "./create-tracking-options.tool.js";
 import UploadAttachmentTool from "./upload-attachment.tool.js";
 import UploadFileTool from "./upload-file.tool.js";
 import LinkFileTool from "./link-file.tool.js";
+import CreateFolderTool from "./create-folder.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -28,4 +29,5 @@ export const CreateTools = [
   UploadAttachmentTool,
   UploadFileTool,
   LinkFileTool,
+  CreateFolderTool,
 ];
