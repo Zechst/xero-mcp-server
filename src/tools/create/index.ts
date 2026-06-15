@@ -13,6 +13,7 @@ import UploadAttachmentTool from "./upload-attachment.tool.js";
 import UploadFileTool from "./upload-file.tool.js";
 import LinkFileTool from "./link-file.tool.js";
 import CreateFolderTool from "./create-folder.tool.js";
+import AddInvoiceNoteTool from "./add-invoice-note.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -30,4 +31,5 @@ export const CreateTools = [
   UploadFileTool,
   LinkFileTool,
   CreateFolderTool,
+  AddInvoiceNoteTool,
 ];
