@@ -64,7 +64,7 @@ export async function uploadXeroFile(
       ? `${FILES_API}/Files/${encodeURIComponent(folderId)}`
       : `${FILES_API}/Files`;
 
-    const response = await axios.post<FileObject>(endpoint, form, {
+    const response = await axios.post<Record<string, unknown>>(endpoint, form, {
       headers: {
         ...form.getHeaders(),
         Authorization: `Bearer ${accessToken}`,
@@ -73,7 +73,19 @@ export async function uploadXeroFile(
       },
     });
 
-    return { result: response.data, isError: false, error: null };
+    // Xero Files API returns PascalCase keys; normalise to camelCase for FileObject
+    const raw = response.data;
+    const fileObject: FileObject = {
+      id: (raw.Id ?? raw.id) as string | undefined,
+      name: (raw.Name ?? raw.name) as string | undefined,
+      mimeType: (raw.MimeType ?? raw.mimeType) as string | undefined,
+      size: (raw.Size ?? raw.size) as number | undefined,
+      folderId: (raw.FolderId ?? raw.folderId) as string | undefined,
+      createdDateUtc: (raw.CreatedDateUtc ?? raw.createdDateUtc) as string | undefined,
+      updatedDateUtc: (raw.UpdatedDateUtc ?? raw.updatedDateUtc) as string | undefined,
+    };
+
+    return { result: fileObject, isError: false, error: null };
   } catch (error) {
     return { result: null, isError: true, error: formatError(error) };
   }
