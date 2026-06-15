@@ -55,6 +55,11 @@ export function formatError(error: unknown): string {
     if (status !== undefined) {
       const mapped = formatHttpStatus(status);
       if (mapped) return mapped;
+      const raw = typeof error.response?.data === "string"
+        ? error.response.data.substring(0, 300)
+        : JSON.stringify(error.response?.data)?.substring(0, 300);
+      if (detail) return `${status}: ${detail}`;
+      if (raw) return `${status}: ${raw}`;
     }
     return detail || "An error occurred while communicating with Xero.";
   }
