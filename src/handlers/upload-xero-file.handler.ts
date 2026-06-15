@@ -50,8 +50,9 @@ export async function uploadXeroFile(
 
     // xero-node's filesApi.uploadFile is broken — it passes a plain object to axios
     // instead of a FormData instance. Post directly to avoid the SDK bug.
+    // Xero validates file extension from the form field *name*, not the filename metadata.
     const form = new FormData();
-    form.append("body", buffer, {
+    form.append(fileName, buffer, {
       filename: fileName,
       contentType: mimeType ?? "application/octet-stream",
     });
