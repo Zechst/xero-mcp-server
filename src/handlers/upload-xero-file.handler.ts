@@ -29,11 +29,12 @@ export async function uploadXeroFile(
   contentBase64?: string,
 ): Promise<XeroClientResponse<FileObject>> {
   try {
-    // Files API uses multipart/form-data — SDK needs a stream, not a raw Buffer.
-    // Use ReadStream for filePath (most reliable), Readable.from for other sources.
-    let body: fs.ReadStream | Readable;
+    // Files API uses multipart/form-data. Use Readable.from([buffer]) for all sources
+    // so the SDK has no path metadata to infer a filename from — it uses our fileName arg.
+    let body: Readable;
     if (filePath) {
-      body = fs.createReadStream(path.resolve(filePath));
+      const buf = fs.readFileSync(path.resolve(filePath));
+      body = Readable.from([buf]);
     } else if (fileUrl) {
       const buf = await fetchUrl(fileUrl);
       body = Readable.from([buf]);
