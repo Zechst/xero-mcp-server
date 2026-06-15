@@ -19,8 +19,8 @@ const ENTITY_TYPES = [
 const UploadAttachmentTool = CreateXeroTool(
   "upload-attachment",
   "Upload a file attachment to a Xero entity (Invoice, Contact, CreditNote, etc.). \
-Provide either filePath (absolute path on the server's filesystem — preferred for large files) \
-or contentBase64 (file content as a base64 string). \
+Provide one of: fileUrl (a URL the server will fetch — best for large files), \
+filePath (absolute path on the server filesystem), or contentBase64 (base64 string for small files). \
 Returns the created attachment metadata including its ID and URL.",
   {
     entityType: z.enum(ENTITY_TYPES).describe(
@@ -32,18 +32,21 @@ Returns the created attachment metadata including its ID and URL.",
     fileName: z.string().describe(
       "The name of the file including extension, e.g. 'invoice.pdf' or 'receipt.jpg'.",
     ),
+    fileUrl: z.string().optional().describe(
+      "A URL the server will fetch the file from (e.g. a presigned S3 URL). Preferred for large files — bypasses the context window entirely.",
+    ),
     filePath: z.string().optional().describe(
-      "Absolute path to the file on the server's filesystem. Use this instead of contentBase64 for files larger than ~30KB to avoid context window truncation.",
+      "Absolute path to the file on the server's filesystem.",
     ),
     contentBase64: z.string().optional().describe(
-      "The file content encoded as a base64 string. Use for small files only. For larger files, use filePath instead.",
+      "The file content encoded as a base64 string. Use for small files only (<30KB).",
     ),
     includeOnline: z.boolean().optional().describe(
       "For Invoices and CreditNotes only: whether to include this attachment when the document is sent online. Defaults to false.",
     ),
   },
-  async ({ entityType, entityId, fileName, filePath, contentBase64, includeOnline }) => {
-    const response = await uploadXeroAttachment(entityType, entityId, fileName, contentBase64, includeOnline, filePath);
+  async ({ entityType, entityId, fileName, fileUrl, filePath, contentBase64, includeOnline }) => {
+    const response = await uploadXeroAttachment(entityType, entityId, fileName, contentBase64, includeOnline, filePath, fileUrl);
     if (response.isError) {
       return {
         content: [{ type: "text" as const, text: `Error uploading attachment: ${response.error}` }],

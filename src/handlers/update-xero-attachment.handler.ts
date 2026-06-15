@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import https from "https";
+import http from "http";
 import { xeroClient } from "../clients/xero-client.js";
 import { Attachment } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -60,22 +62,37 @@ async function replaceAttachment(
   return attachment;
 }
 
+function fetchUrl(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith("https") ? https : http;
+    client.get(url, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => resolve(Buffer.concat(chunks)));
+      res.on("error", reject);
+    }).on("error", reject);
+  });
+}
+
 export async function updateXeroAttachment(
   entityType: AttachmentEntityType,
   entityId: string,
   fileName: string,
   contentBase64: string | undefined,
   filePath?: string,
+  fileUrl?: string,
 ): Promise<XeroClientResponse<Attachment>> {
   try {
     let buffer: Buffer;
-    if (filePath) {
+    if (fileUrl) {
+      buffer = await fetchUrl(fileUrl);
+    } else if (filePath) {
       const resolved = path.resolve(filePath);
       buffer = fs.readFileSync(resolved);
     } else if (contentBase64) {
       buffer = Buffer.from(contentBase64, "base64");
     } else {
-      throw new Error("Either contentBase64 or filePath must be provided.");
+      throw new Error("One of fileUrl, filePath, or contentBase64 must be provided.");
     }
     const attachment = await replaceAttachment(entityType, entityId, fileName, buffer);
     return { result: attachment, isError: false, error: null };
