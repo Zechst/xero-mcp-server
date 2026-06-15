@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import http from "http";
+import { Readable } from "stream";
 import { xeroClient } from "../clients/xero-client.js";
 import { FileObject } from "xero-node/dist/gen/model/files/fileObject.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -28,13 +29,17 @@ export async function uploadXeroFile(
   contentBase64?: string,
 ): Promise<XeroClientResponse<FileObject>> {
   try {
-    let buffer: Buffer;
-    if (fileUrl) {
-      buffer = await fetchUrl(fileUrl);
-    } else if (filePath) {
-      buffer = fs.readFileSync(path.resolve(filePath));
+    // Files API uses multipart/form-data — SDK needs a stream, not a raw Buffer.
+    // Use ReadStream for filePath (most reliable), Readable.from for other sources.
+    let body: fs.ReadStream | Readable;
+    if (filePath) {
+      body = fs.createReadStream(path.resolve(filePath));
+    } else if (fileUrl) {
+      const buf = await fetchUrl(fileUrl);
+      body = Readable.from([buf]);
     } else if (contentBase64) {
-      buffer = Buffer.from(contentBase64, "base64");
+      const buf = Buffer.from(contentBase64, "base64");
+      body = Readable.from([buf]);
     } else {
       throw new Error("One of fileUrl, filePath, or contentBase64 must be provided.");
     }
@@ -45,12 +50,12 @@ export async function uploadXeroFile(
     let fileObject: FileObject;
     if (folderId) {
       const response = await xeroClient.filesApi.uploadFileToFolder(
-        tenantId, folderId, buffer, fileName, fileName, undefined, mimeType,
+        tenantId, folderId, body, fileName, fileName, undefined, mimeType,
       );
       fileObject = response.body;
     } else {
       const response = await xeroClient.filesApi.uploadFile(
-        tenantId, buffer, fileName, fileName, undefined, mimeType,
+        tenantId, body, fileName, fileName, undefined, mimeType,
       );
       fileObject = response.body;
     }
