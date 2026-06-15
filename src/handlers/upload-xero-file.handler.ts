@@ -2,11 +2,14 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import http from "http";
-import { Readable } from "stream";
+import FormData from "form-data";
+import axios from "axios";
 import { xeroClient } from "../clients/xero-client.js";
 import { FileObject } from "xero-node/dist/gen/model/files/fileObject.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+
+const FILES_API = "https://api.xero.com/files.xro/1.0";
 
 function fetchUrl(url: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -29,39 +32,47 @@ export async function uploadXeroFile(
   contentBase64?: string,
 ): Promise<XeroClientResponse<FileObject>> {
   try {
-    // Files API uses multipart/form-data. Use Readable.from([buffer]) for all sources
-    // so the SDK has no path metadata to infer a filename from — it uses our fileName arg.
-    let body: Readable;
+    let buffer: Buffer;
     if (filePath) {
-      const buf = fs.readFileSync(path.resolve(filePath));
-      body = Readable.from([buf]);
+      buffer = fs.readFileSync(path.resolve(filePath));
     } else if (fileUrl) {
-      const buf = await fetchUrl(fileUrl);
-      body = Readable.from([buf]);
+      buffer = await fetchUrl(fileUrl);
     } else if (contentBase64) {
-      const buf = Buffer.from(contentBase64, "base64");
-      body = Readable.from([buf]);
+      buffer = Buffer.from(contentBase64, "base64");
     } else {
       throw new Error("One of fileUrl, filePath, or contentBase64 must be provided.");
     }
 
     await xeroClient.authenticate();
     const tenantId = xeroClient.tenantId;
+    const tokenSet = xeroClient.readTokenSet();
+    const accessToken = tokenSet.access_token;
 
-    let fileObject: FileObject;
-    if (folderId) {
-      const response = await xeroClient.filesApi.uploadFileToFolder(
-        tenantId, folderId, body, fileName, fileName, undefined, mimeType,
-      );
-      fileObject = response.body;
-    } else {
-      const response = await xeroClient.filesApi.uploadFile(
-        tenantId, body, fileName, fileName, undefined, mimeType,
-      );
-      fileObject = response.body;
-    }
+    // xero-node's filesApi.uploadFile is broken — it passes a plain object to axios
+    // instead of a FormData instance. Post directly to avoid the SDK bug.
+    const form = new FormData();
+    form.append("body", buffer, {
+      filename: fileName,
+      contentType: mimeType ?? "application/octet-stream",
+    });
+    form.append("name", fileName);
+    form.append("filename", fileName);
+    if (mimeType) form.append("mimeType", mimeType);
 
-    return { result: fileObject, isError: false, error: null };
+    const endpoint = folderId
+      ? `${FILES_API}/Files/${encodeURIComponent(folderId)}`
+      : `${FILES_API}/Files`;
+
+    const response = await axios.post<FileObject>(endpoint, form, {
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Bearer ${accessToken}`,
+        "xero-tenant-id": tenantId,
+        Accept: "application/json",
+      },
+    });
+
+    return { result: response.data, isError: false, error: null };
   } catch (error) {
     return { result: null, isError: true, error: formatError(error) };
   }
