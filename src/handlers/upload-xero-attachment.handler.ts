@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { xeroClient } from "../clients/xero-client.js";
 import { Attachment } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -63,11 +65,20 @@ export async function uploadXeroAttachment(
   entityType: AttachmentEntityType,
   entityId: string,
   fileName: string,
-  contentBase64: string,
+  contentBase64: string | undefined,
   includeOnline?: boolean,
+  filePath?: string,
 ): Promise<XeroClientResponse<Attachment>> {
   try {
-    const buffer = Buffer.from(contentBase64, "base64");
+    let buffer: Buffer;
+    if (filePath) {
+      const resolved = path.resolve(filePath);
+      buffer = fs.readFileSync(resolved);
+    } else if (contentBase64) {
+      buffer = Buffer.from(contentBase64, "base64");
+    } else {
+      throw new Error("Either contentBase64 or filePath must be provided.");
+    }
     const attachment = await uploadAttachment(entityType, entityId, fileName, buffer, includeOnline);
     return { result: attachment, isError: false, error: null };
   } catch (error) {

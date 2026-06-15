@@ -19,8 +19,9 @@ const ENTITY_TYPES = [
 const UpdateAttachmentTool = CreateXeroTool(
   "update-attachment",
   "Replace an existing file attachment on a Xero entity by filename. \
-The file content must be provided as a base64-encoded string. \
 The fileName must match an existing attachment — use list-attachments to find it. \
+Provide either filePath (absolute path on the server's filesystem — preferred for large files) \
+or contentBase64 (file content as a base64 string). \
 Returns the updated attachment metadata.",
   {
     entityType: z.enum(ENTITY_TYPES).describe(
@@ -32,12 +33,15 @@ Returns the updated attachment metadata.",
     fileName: z.string().describe(
       "The filename of the existing attachment to replace, e.g. 'invoice.pdf'. Must match exactly.",
     ),
-    contentBase64: z.string().describe(
-      "The new file content encoded as a base64 string.",
+    filePath: z.string().optional().describe(
+      "Absolute path to the file on the server's filesystem. Use this instead of contentBase64 for files larger than ~30KB to avoid context window truncation.",
+    ),
+    contentBase64: z.string().optional().describe(
+      "The new file content encoded as a base64 string. Use for small files only. For larger files, use filePath instead.",
     ),
   },
-  async ({ entityType, entityId, fileName, contentBase64 }) => {
-    const response = await updateXeroAttachment(entityType, entityId, fileName, contentBase64);
+  async ({ entityType, entityId, fileName, filePath, contentBase64 }) => {
+    const response = await updateXeroAttachment(entityType, entityId, fileName, contentBase64, filePath);
     if (response.isError) {
       return {
         content: [{ type: "text" as const, text: `Error updating attachment: ${response.error}` }],

@@ -19,7 +19,8 @@ const ENTITY_TYPES = [
 const UploadAttachmentTool = CreateXeroTool(
   "upload-attachment",
   "Upload a file attachment to a Xero entity (Invoice, Contact, CreditNote, etc.). \
-The file content must be provided as a base64-encoded string. \
+Provide either filePath (absolute path on the server's filesystem — preferred for large files) \
+or contentBase64 (file content as a base64 string). \
 Returns the created attachment metadata including its ID and URL.",
   {
     entityType: z.enum(ENTITY_TYPES).describe(
@@ -31,15 +32,18 @@ Returns the created attachment metadata including its ID and URL.",
     fileName: z.string().describe(
       "The name of the file including extension, e.g. 'invoice.pdf' or 'receipt.jpg'.",
     ),
-    contentBase64: z.string().describe(
-      "The file content encoded as a base64 string.",
+    filePath: z.string().optional().describe(
+      "Absolute path to the file on the server's filesystem. Use this instead of contentBase64 for files larger than ~30KB to avoid context window truncation.",
+    ),
+    contentBase64: z.string().optional().describe(
+      "The file content encoded as a base64 string. Use for small files only. For larger files, use filePath instead.",
     ),
     includeOnline: z.boolean().optional().describe(
       "For Invoices and CreditNotes only: whether to include this attachment when the document is sent online. Defaults to false.",
     ),
   },
-  async ({ entityType, entityId, fileName, contentBase64, includeOnline }) => {
-    const response = await uploadXeroAttachment(entityType, entityId, fileName, contentBase64, includeOnline);
+  async ({ entityType, entityId, fileName, filePath, contentBase64, includeOnline }) => {
+    const response = await uploadXeroAttachment(entityType, entityId, fileName, contentBase64, includeOnline, filePath);
     if (response.isError) {
       return {
         content: [{ type: "text" as const, text: `Error uploading attachment: ${response.error}` }],
