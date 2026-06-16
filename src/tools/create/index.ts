@@ -14,6 +14,8 @@ import UploadFileTool from "./upload-file.tool.js";
 import LinkFileTool from "./link-file.tool.js";
 import CreateFolderTool from "./create-folder.tool.js";
 import AddInvoiceNoteTool from "./add-invoice-note.tool.js";
+import CreateAssetTool from "./create-asset.tool.js";
+import CreateAssetTypeTool from "./create-asset-type.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -32,4 +34,6 @@ export const CreateTools = [
   LinkFileTool,
   CreateFolderTool,
   AddInvoiceNoteTool,
+  CreateAssetTool,
+  CreateAssetTypeTool,
 ];
