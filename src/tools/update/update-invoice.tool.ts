@@ -27,12 +27,14 @@ const lineItemSchema = z.object({
 
 const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
-  "Update an invoice in Xero. Only works on draft invoices.\
-  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
-  Do not modify line items that have not been specified by the user.\
- When an invoice is updated, a deep link to the invoice in Xero is returned. \
- This deep link can be used to view the contact in Xero directly. \
- This link should be displayed to the user.",
+  "Update a Xero invoice or bill. Editable fields depend on status: \
+DRAFT — all fields (lineItems, reference, dueDate, date, contactId, currencyRate); \
+AUTHORISED (unpaid) — reference, dueDate, currencyRate only; \
+PAID — reference only; \
+VOIDED — no fields (blocked). \
+All line items must be provided for DRAFT updates — any omitted line items will be removed. \
+Do not modify line items that have not been specified by the user. \
+A deep link to view the invoice in Xero is returned after a successful update.",
   {
     invoiceId: z.string().describe("The ID of the invoice to update."),
     lineItems: z.array(lineItemSchema).optional().describe(

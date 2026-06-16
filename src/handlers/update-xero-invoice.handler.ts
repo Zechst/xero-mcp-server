@@ -77,23 +77,45 @@ export async function updateXeroInvoice(
 
     const invoiceStatus = existingInvoice?.status;
 
-    // Only allow updates to DRAFT invoices
-    if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
+    if (invoiceStatus === Invoice.StatusEnum.VOIDED) {
       return {
         result: null,
         isError: true,
-        error: `Cannot update invoice because it is not a draft. Current status: ${invoiceStatus}`,
+        error: "Cannot update a voided invoice.",
       };
     }
 
+    // PAID invoices: only reference is editable
+    if (invoiceStatus === Invoice.StatusEnum.PAID) {
+      if (lineItems || dueDate || date || contactId || currencyRate) {
+        return {
+          result: null,
+          isError: true,
+          error: "PAID invoices only allow updating the reference field. Line items, dates, contact, and currency rate are locked.",
+        };
+      }
+    }
+
+    // AUTHORISED invoices: reference, dueDate, currencyRate only
+    if (invoiceStatus === Invoice.StatusEnum.AUTHORISED) {
+      if (lineItems || date || contactId) {
+        return {
+          result: null,
+          isError: true,
+          error: "AUTHORISED invoices only allow updating reference, dueDate, and currencyRate. Line items, invoice date, and contact are locked.",
+        };
+      }
+    }
+
+    const isDraft = invoiceStatus === Invoice.StatusEnum.DRAFT;
     const updatedInvoice = await updateInvoice(
       invoiceId,
-      lineItems,
+      isDraft ? lineItems : undefined,
       reference,
-      dueDate,
-      date,
-      contactId,
-      currencyRate,
+      isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? dueDate : undefined,
+      isDraft ? date : undefined,
+      isDraft ? contactId : undefined,
+      isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? currencyRate : undefined,
     );
 
     if (!updatedInvoice) {
