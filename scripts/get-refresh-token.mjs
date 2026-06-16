@@ -33,6 +33,7 @@ const SCOPES = [
   "accounting.payments",
   "accounting.banktransactions",
   "accounting.manualjournals",
+  "accounting.journals.read",
   "accounting.reports.aged.read",
   "accounting.reports.balancesheet.read",
   "accounting.reports.profitandloss.read",
