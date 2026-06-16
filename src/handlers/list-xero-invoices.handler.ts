@@ -7,6 +7,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
+  invoiceIds: string[] | undefined,
   page: number,
 ): Promise<Invoice[]> {
   await xeroClient.authenticate();
@@ -16,7 +17,7 @@ async function getInvoices(
     undefined, // ifModifiedSince
     undefined, // where
     "UpdatedDateUTC DESC", // order
-    undefined, // iDs
+    invoiceIds, // iDs (UUIDs)
     invoiceNumbers, // invoiceNumbers
     contactIds, // contactIDs
     undefined, // statuses
@@ -39,9 +40,10 @@ export async function listXeroInvoices(
   page: number = 1,
   contactIds?: string[],
   invoiceNumbers?: string[],
+  invoiceIds?: string[],
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(invoiceNumbers, contactIds, invoiceIds, page);
 
     return {
       result: invoices,

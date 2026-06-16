@@ -11,17 +11,22 @@ const ListInvoicesTool = CreateXeroTool(
   Ask the user if they want the next page of invoices after running this tool \
   if 10 invoices are returned. \
   If they want the next page, call this tool again with the next page number \
-  and the contact or invoice number if one was provided in the previous call.",
+  and the contact or invoice number if one was provided in the previous call. \
+  Use get-invoice for a single invoice UUID when you need full line items for PAID invoices.",
   {
     page: z.number(),
     contactIds: z.array(z.string()).optional(),
     invoiceNumbers: z
       .array(z.string())
       .optional()
-      .describe("If provided, invoice line items will also be returned"),
+      .describe("Human-readable invoice numbers (e.g. INV-001). If provided, line items are returned."),
+    invoiceIds: z
+      .array(z.string())
+      .optional()
+      .describe("Invoice UUIDs to filter by. If provided, line items are returned."),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, invoiceNumbers, invoiceIds }) => {
+    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, invoiceIds);
     if (response.error !== null) {
       return {
         content: [
@@ -34,7 +39,7 @@ const ListInvoicesTool = CreateXeroTool(
     }
 
     const invoices = response.result;
-    const returnLineItems = (invoiceNumbers?.length ?? 0) > 0;
+    const returnLineItems = (invoiceNumbers?.length ?? 0) > 0 || (invoiceIds?.length ?? 0) > 0;
 
     return {
       content: [
