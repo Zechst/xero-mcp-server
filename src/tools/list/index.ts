@@ -33,7 +33,6 @@ import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListContactGroupsTool from "./list-contact-groups.tool.js";
 import ListAssetsTool from "./list-assets.tool.js";
 import ListAssetTypesTool from "./list-asset-types.tool.js";
-import ListJournalsTool from "./list-journals.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
@@ -66,5 +65,4 @@ export const ListTools = [
   ListFilesTool,
   ListAssetsTool,
   ListAssetTypesTool,
-  ListJournalsTool,
 ];

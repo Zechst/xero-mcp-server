@@ -102,6 +102,8 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     "accounting.reports.balancesheet.read",
     "accounting.reports.profitandloss.read",
     "accounting.reports.trialbalance.read",
+    "accounting.reports.banksummary.read",
+    "assets",
     "accounting.contacts",
     "accounting.settings",
     "accounting.attachments",
