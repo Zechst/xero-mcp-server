@@ -3,6 +3,8 @@ import GetAttachmentTool from "./get-attachment.tool.js";
 import GetInvoiceTool from "./get-invoice.tool.js";
 import GetAssetTool from "./get-asset.tool.js";
 import GetAssetSettingsTool from "./get-asset-settings.tool.js";
+import GetAccountTool from "./get-account.tool.js";
+import GetReportBankSummaryTool from "./get-report-bank-summary.tool.js";
 
 export const GetTools = [
   GetPayrollTimesheetTool,
@@ -10,4 +12,6 @@ export const GetTools = [
   GetInvoiceTool,
   GetAssetTool,
   GetAssetSettingsTool,
+  GetAccountTool,
+  GetReportBankSummaryTool,
 ];
