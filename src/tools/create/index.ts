@@ -16,6 +16,7 @@ import CreateFolderTool from "./create-folder.tool.js";
 import AddInvoiceNoteTool from "./add-invoice-note.tool.js";
 import CreateAssetTool from "./create-asset.tool.js";
 import CreateAssetTypeTool from "./create-asset-type.tool.js";
+import CreateAccountTool from "./create-account.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -36,4 +37,5 @@ export const CreateTools = [
   AddInvoiceNoteTool,
   CreateAssetTool,
   CreateAssetTypeTool,
+  CreateAccountTool,
 ];

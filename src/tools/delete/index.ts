@@ -5,6 +5,7 @@ import DeleteTempFileTool from "./delete-temp-file.tool.js";
 import DeleteFileTool from "./delete-file.tool.js";
 import DeleteManualJournalTool from "./delete-manual-journal.tool.js";
 import VoidManualJournalTool from "./void-manual-journal.tool.js";
+import DeleteAccountTool from "./delete-account.tool.js";
 
 export const DeleteTools = [
   DeletePayrollTimesheetTool,
@@ -14,4 +15,5 @@ export const DeleteTools = [
   DeleteFileTool,
   DeleteManualJournalTool,
   VoidManualJournalTool,
+  DeleteAccountTool,
 ];
