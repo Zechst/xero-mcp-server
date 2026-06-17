@@ -28,10 +28,11 @@ const lineItemSchema = z.object({
 const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
   "Update a Xero invoice or bill. Editable fields depend on status: \
-DRAFT — all fields (lineItems, reference, dueDate, date, contactId, currencyRate); \
+DRAFT — all fields (lineItems, reference, invoiceNumber, dueDate, date, contactId, currencyRate); \
 AUTHORISED (unpaid) — reference, dueDate, currencyRate only; \
 PAID — reference only; \
 VOIDED — no fields (blocked). \
+For bills (ACCPAY), invoiceNumber sets the Reference field shown in the Xero UI and bill list view. \
 All line items must be provided for DRAFT updates — any omitted line items will be removed. \
 Do not modify line items that have not been specified by the user. \
 A deep link to view the invoice in Xero is returned after a successful update.",
@@ -41,7 +42,8 @@ A deep link to view the invoice in Xero is returned after a successful update.",
       "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
       Do not modify line items that have not been specified by the user",
     ),
-    reference: z.string().optional().describe("A reference number for the invoice."),
+    reference: z.string().optional().describe("A secondary reference field. For bills, use invoiceNumber instead to set the field visible in the Xero UI."),
+    invoiceNumber: z.string().optional().describe("The bill/invoice number shown in the Xero UI list view and Reference field on bills (ACCPAY). Only editable on DRAFT bills."),
     dueDate: z.string().optional().describe("The due date of the invoice."),
     date: z.string().optional().describe("The date of the invoice."),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
@@ -53,6 +55,7 @@ A deep link to view the invoice in Xero is returned after a successful update.",
       invoiceId,
       lineItems,
       reference,
+      invoiceNumber,
       dueDate,
       date,
       contactId,
@@ -67,6 +70,7 @@ A deep link to view the invoice in Xero is returned after a successful update.",
         taxType: string;
       }>;
       reference?: string;
+      invoiceNumber?: string;
       dueDate?: string;
       date?: string;
       contactId?: string;
@@ -78,6 +82,7 @@ A deep link to view the invoice in Xero is returned after a successful update.",
       invoiceId,
       lineItems,
       reference,
+      invoiceNumber,
       dueDate,
       date,
       contactId,
