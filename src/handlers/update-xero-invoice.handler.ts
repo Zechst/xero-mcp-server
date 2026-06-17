@@ -30,6 +30,7 @@ async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
 
 async function updateInvoice(
   invoiceId: string,
+  invoiceType: Invoice.TypeEnum | undefined,
   lineItems?: InvoiceLineItem[],
   reference?: string,
   dueDate?: string,
@@ -37,9 +38,14 @@ async function updateInvoice(
   contactId?: string,
   currencyRate?: number,
 ): Promise<Invoice | undefined> {
+  const isBill = invoiceType === Invoice.TypeEnum.ACCPAY;
   const invoice: Invoice = {
     lineItems: lineItems,
-    reference: reference,
+    ...(reference !== undefined
+      ? isBill
+        ? { invoiceNumber: reference }
+        : { reference: reference }
+      : {}),
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
@@ -110,6 +116,7 @@ export async function updateXeroInvoice(
     const isDraft = invoiceStatus === Invoice.StatusEnum.DRAFT;
     const updatedInvoice = await updateInvoice(
       invoiceId,
+      existingInvoice?.type,
       isDraft ? lineItems : undefined,
       reference,
       isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? dueDate : undefined,
