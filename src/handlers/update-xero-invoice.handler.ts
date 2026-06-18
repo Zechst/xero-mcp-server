@@ -99,13 +99,20 @@ export async function updateXeroInvoice(
       }
     }
 
-    // AUTHORISED invoices: reference, invoiceNumber, dueDate, currencyRate only
+    // AUTHORISED invoices: reference, invoiceNumber, dueDate only
     if (invoiceStatus === Invoice.StatusEnum.AUTHORISED) {
       if (lineItems || date || contactId) {
         return {
           result: null,
           isError: true,
-          error: "AUTHORISED invoices only allow updating reference, invoiceNumber, dueDate, and currencyRate. Line items, invoice date, and contact are locked.",
+          error: "AUTHORISED invoices only allow updating reference, invoiceNumber, and dueDate. Line items, invoice date, and contact are locked.",
+        };
+      }
+      if (currencyRate) {
+        return {
+          result: null,
+          isError: true,
+          error: "currencyRate cannot be updated on AUTHORISED invoices via the API — Xero automatically overrides it with the XE.com daily rate whenever any field is modified. To fix the exchange rate, go to Xero Settings → Currencies → Edit the rate for the specific date.",
         };
       }
     }
@@ -119,7 +126,7 @@ export async function updateXeroInvoice(
       isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? dueDate : undefined,
       isDraft ? date : undefined,
       isDraft ? contactId : undefined,
-      isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? currencyRate : undefined,
+      isDraft ? currencyRate : undefined,
     );
 
     if (!updatedInvoice) {

@@ -29,7 +29,7 @@ const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
   "Update a Xero invoice or bill. Editable fields depend on status: \
 DRAFT — all fields (lineItems, reference, invoiceNumber, dueDate, date, contactId, currencyRate); \
-AUTHORISED (unpaid) — reference, invoiceNumber, dueDate, currencyRate only; \
+AUTHORISED (unpaid) — reference, invoiceNumber, dueDate only (currencyRate cannot be set — Xero overrides it with XE.com daily rate on any update); \
 PAID — reference and invoiceNumber only; \
 VOIDED — no fields (blocked). \
 For bills (ACCPAY), invoiceNumber sets the Reference field shown in the Xero UI and bill list view. \
