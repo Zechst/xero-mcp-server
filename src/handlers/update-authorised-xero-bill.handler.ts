@@ -14,11 +14,18 @@ interface BillLineItem {
   tracking?: LineItemTracking[];
 }
 
+function toDateString(d: Date | string | undefined): string | undefined {
+  if (!d) return undefined;
+  if (typeof d === "string") return d;
+  return d.toISOString().split("T")[0];
+}
+
 export async function updateAuthorisedXeroBill(
   invoiceId: string,
   lineItems?: BillLineItem[],
   reference?: string,
   dueDate?: string,
+  date?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     await xeroClient.authenticate();
@@ -52,7 +59,8 @@ export async function updateAuthorisedXeroBill(
           {
             lineItems: lineItems ?? invoice.lineItems,
             reference: reference ?? invoice.reference,
-            dueDate: dueDate ?? invoice.dueDate,
+            dueDate: dueDate ?? toDateString(invoice.dueDate),
+            date: date ?? toDateString(invoice.date),
           },
         ],
       },
