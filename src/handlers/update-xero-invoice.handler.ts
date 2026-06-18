@@ -88,24 +88,24 @@ export async function updateXeroInvoice(
       };
     }
 
-    // PAID invoices: only reference is editable
+    // PAID invoices: only reference and invoiceNumber are editable
     if (invoiceStatus === Invoice.StatusEnum.PAID) {
       if (lineItems || dueDate || date || contactId || currencyRate) {
         return {
           result: null,
           isError: true,
-          error: "PAID invoices only allow updating the reference field. Line items, dates, contact, and currency rate are locked.",
+          error: "PAID invoices only allow updating the reference and invoiceNumber fields. Line items, dates, contact, and currency rate are locked.",
         };
       }
     }
 
-    // AUTHORISED invoices: reference, dueDate, currencyRate only
+    // AUTHORISED invoices: reference, invoiceNumber, dueDate, currencyRate only
     if (invoiceStatus === Invoice.StatusEnum.AUTHORISED) {
       if (lineItems || date || contactId) {
         return {
           result: null,
           isError: true,
-          error: "AUTHORISED invoices only allow updating reference, dueDate, and currencyRate. Line items, invoice date, and contact are locked.",
+          error: "AUTHORISED invoices only allow updating reference, invoiceNumber, dueDate, and currencyRate. Line items, invoice date, and contact are locked.",
         };
       }
     }
@@ -115,7 +115,7 @@ export async function updateXeroInvoice(
       invoiceId,
       isDraft ? lineItems : undefined,
       reference,
-      isDraft ? invoiceNumber : undefined,
+      invoiceNumber,
       isDraft || invoiceStatus === Invoice.StatusEnum.AUTHORISED ? dueDate : undefined,
       isDraft ? date : undefined,
       isDraft ? contactId : undefined,
