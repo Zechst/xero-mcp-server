@@ -17,6 +17,7 @@ import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 import UpdateAttachmentTool from "./update-attachment.tool.js";
 import MoveFileTool from "./move-file.tool.js";
 import UpdateAccountTool from "./update-account.tool.js";
+import RenameFileTool from "./rename-file.tool.js";
 
 export const UpdateTools = [
   AuthoriseBillTool,
@@ -37,4 +38,5 @@ export const UpdateTools = [
   UpdateAttachmentTool,
   MoveFileTool,
   UpdateAccountTool,
+  RenameFileTool,
 ];
