@@ -22,8 +22,8 @@ const lineItemSchema = z.object({
 const UpdateAuthorisedBillTool = CreateXeroTool(
   "update-authorised-bill",
   "Update an authorised bill (ACCPAY invoice) in Xero. \
-Only line items, reference, and due date can be changed on an authorised bill — \
-contact and invoice date cannot be modified. \
+Only line items and reference can be changed on an authorised bill. \
+Contact, invoice date, and due date cannot be modified via MCP on authorised bills. \
 All line items must be provided when updating them; any omitted line items will be removed. \
 A deep link to the bill is returned and should be displayed to the user.",
   {
@@ -32,13 +32,11 @@ A deep link to the bill is returned and should be displayed to the user.",
       "All line items must be provided. Any line items not provided will be removed. Do not modify line items not specified by the user.",
     ),
     reference: z.string().optional().describe("A reference for the bill."),
-    dueDate: z.string().optional().describe("The due date of the bill in YYYY-MM-DD format."),
   },
   async ({
     invoiceId,
     lineItems,
     reference,
-    dueDate,
   }: {
     invoiceId: string;
     lineItems?: Array<{
@@ -50,9 +48,8 @@ A deep link to the bill is returned and should be displayed to the user.",
       itemCode?: string;
     }>;
     reference?: string;
-    dueDate?: string;
   }) => {
-    const result = await updateAuthorisedXeroBill(invoiceId, lineItems, reference, dueDate);
+    const result = await updateAuthorisedXeroBill(invoiceId, lineItems, reference, undefined);
 
     if (result.isError) {
       return {
